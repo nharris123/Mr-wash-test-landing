@@ -131,6 +131,35 @@
   </div>
 </section>
 <section class="block" id="unlimited">
+  <section class="block" id="calculator">
+  <div class="container">
+    <h2>Unlimited Savings Calculator</h2>
+    <p class="lead">See which plan pays for itself based on how often you wash.</p>
+
+    <div class="block-cards" style="align-items:flex-start;">
+      <div class="card" style="max-width:420px;flex:1;">
+        <h3>Your habits</h3>
+        <label style="display:block;margin:10px 0 6px;font-weight:600;">Washes per month</label>
+        <input id="calc-washes" type="number" min="1" value="4" style="width:100%;padding:12px 14px;border:1px solid #C8C8C8;border-radius:8px;font-size:16px;">
+
+        <label style="display:block;margin:16px 0 6px;font-weight:600;">Single wash price ($)</label>
+        <input id="calc-price" type="number" min="1" value="15" step="1" style="width:100%;padding:12px 14px;border:1px solid #C8C8C8;border-radius:8px;font-size:16px;">
+
+        <button id="calc-btn" class="btn btn-primary" style="margin-top:16px;">Calculate</button>
+      </div>
+
+      <div class="card" style="max-width:520px;flex:1;">
+        <h3>Best value for you</h3>
+        <div id="calc-result" style="font-size:18px;line-height:1.6;">
+          Enter your washes and price to see savings.
+        </div>
+        <div style="margin-top:16px;">
+          <a id="calc-cta" href="#unlimited" class="btn btn-secondary">Join Unlimited</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
   <div class="container">
     <h2>Our Wash Packages</h2>
     <p class="lead">Pick your shine. Wash as often as you like.</p>
@@ -243,5 +272,55 @@
     <div class="footer-copy">&copy; 2025 Mr Wash Car Wash</div>
   </div>
 </footer>
+  <script>
+  (function() {
+    const LITE = 19, PLUS = 29, PRO = 39; // monthly prices
+
+    function recommendPlan(costPerWash, washes) {
+      const monthlySpend = costPerWash * washes;
+
+      const options = [
+        { name: 'Lite',   price: LITE },
+        { name: 'Plus',   price: PLUS },
+        { name: 'Pro Ceramic', price: PRO }
+      ];
+
+      // Compute savings vs paying per wash
+      options.forEach(o => { o.savings = monthlySpend - o.price; });
+
+      // Choose the cheapest plan that still makes sense
+      // (highest savings; if all negative, pick the lowest cost plan)
+      const best = options.reduce((a,b) => (b.savings > a.savings ? b : a));
+
+      return { monthlySpend, best, options };
+    }
+
+    function format(n){ return '$' + n.toFixed(2); }
+
+    function render() {
+      const washes = Math.max(1, parseFloat(document.getElementById('calc-washes').value || '0'));
+      const price  = Math.max(1, parseFloat(document.getElementById('calc-price').value  || '0'));
+
+      const { monthlySpend, best, options } = recommendPlan(price, washes);
+
+      const rows = options.map(o => {
+        const badge = (o.name === best.name) ? ' <span style="background:#FE5000;color:#fff;padding:3px 8px;border-radius:999px;font-size:12px;margin-left:6px;">Recommended</span>' : '';
+        const color = (o.name === best.name) ? 'style="font-weight:700;color:#0E2A47;"' : '';
+        return `<li ${color}>${o.name}: ${format(o.price)}/mo — Savings: ${format(o.savings)}${badge}</li>`;
+      }).join('');
+
+      document.getElementById('calc-result').innerHTML =
+        `<p>Pay-per-wash spend: <strong>${format(monthlySpend)}</strong> / month</p>
+         <ul style="margin:8px 0 0 18px;">${rows}</ul>`;
+
+      // Set CTA text to the best plan
+      const cta = document.getElementById('calc-cta');
+      cta.textContent = 'Join ' + best.name;
+      cta.href = '#unlimited';
+    }
+
+    document.getElementById('calc-btn').addEventListener('click', render);
+  })();
+</script>
 </body>
 </html>
