@@ -5,7 +5,17 @@
   <title>Mr Wash Car Wash | Shine In Minutes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
-
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+  crossorigin=""
+/>
+<style>
+  /* Map styling */
+  #map { height: 420px; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .use-my-location { margin-left: 8px; }
+</style>
   <style>
     :root {
       --orange: #FE5000;
@@ -91,6 +101,11 @@
     }
   </style>
 </head>
+  <script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""
+></script>
 <body>
 <header>
   <div class="container nav">
@@ -206,9 +221,11 @@
     <h2>Find a Location</h2>
     <p class="lead">Search by city or zip—we’ll show the closest Mr Wash near you.</p>
     <form style="display:flex;gap:16px;max-width:500px;margin-bottom:32px;">
-      <input type="text" placeholder="Enter city or ZIP" style="flex:1;padding:11px 16px;border:1px solid #C8C8C8;border-radius:8px;font-size:17px;">
+      <input type="location-search""text" placeholder="Enter city or ZIP" style="flex:1;padding:11px 16px;border:1px solid #C8C8C8;border-radius:8px;font-size:17px;">
       <button type="submit" class="btn btn-primary" style="padding:11px 32px;">Search</button>
+        <button type="button" id="use-my-location" class="btn btn-secondary use-my-location">Use My Location</button>
     </form>
+        <div id="map"></div>
     <div class="location-list">
       <div class="locator-box">Tysons • Arlington • Alexandria • Kensington • Silver Spring • More</div>
     </div>
@@ -323,6 +340,137 @@
 
     document.getElementById('calc-btn').addEventListener('click', render);
   })();
+</script>
+  <script>
+  // ==== 1) Your locations (replace with real coordinates when ready) ====
+  // NOTE: These are example coordinates around the DC area. Swap with real site lat/lng.
+  const LOCATIONS = [
+    { name: "Tysons",        address: "Tysons, VA",        lat: 38.920, lng: -77.223 },
+    { name: "Arlington",     address: "Arlington, VA",     lat: 38.878, lng: -77.101 },
+    { name: "Alexandria",    address: "Alexandria, VA",    lat: 38.804, lng: -77.046 },
+    { name: "Kensington",    address: "Kensington, MD",    lat: 39.026, lng: -77.076 },
+    { name: "Silver Spring", address: "Silver Spring, MD", lat: 38.990, lng: -77.026 }
+  ];
+
+  // ==== 2) Create map ====
+  const map = L.map('map', { scrollWheelZoom: true }).setView([38.9072, -77.0369], 10); // DC area
+
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+
+  // ==== 3) Add markers + keep a layer group ====
+  const markers = L.layerGroup().addTo(map);
+
+  function addMarkers(list = LOCATIONS) {
+    markers.clearLayers();
+    list.forEach(loc => {
+      const m = L.marker([loc.lat, loc.lng]).addTo(markers);
+      const gmaps = `https://www.google.com/maps/dir/?api=1&destination=${loc.lat},${loc.lng}`;
+      m.bindPopup(`
+        <strong>${loc.name}</strong><br/>
+        <small>${loc.address}</small><br/>
+        <a href="${gmaps}" target="_blank" rel="noopener">Directions →</a>
+      `);
+    });
+  }
+  addMarkers();
+
+  // Fit map to all locations initially
+  (function fitAll() {
+    const b = L.latLngBounds(LOCATIONS.map(l => [l.lat, l.lng]));
+    if (b.isValid()) map.fitBounds(b.pad(0.2));
+  })();
+
+  // ==== 4) Helper: distance (meters) ====
+  function haversine(lat1, lon1, lat2, lon2) {
+    const toRad = d => d * Math.PI / 180;
+    const R = 6371e3; // meters
+    const φ1 = toRad(lat1), φ2 = toRad(lat2);
+    const Δφ = toRad(lat2 - lat1), Δλ = toRad(lon2 - lon1);
+    const a = Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
+    return 2 * R * Math.asin(Math.sqrt(a));
+  }
+
+  function nearestTo(lat, lng) {
+    let best = null, bestD = Infinity;
+    LOCATIONS.forEach(l => {
+      const d = haversine(lat, lng, l.lat, l.lng);
+      if (d < bestD) { bestD = d; best = { ...l, distance: d }; }
+    });
+    return best;
+  }
+
+  // ==== 5) Use My Location ====
+  const useMyLocationBtn = document.getElementById('use-my-location');
+  useMyLocationBtn.addEventListener('click', () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation not supported on this browser.');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        // Show user location
+        const you = L.circleMarker([latitude, longitude], { radius: 8, color: '#FE5000' })
+          .addTo(map)
+          .bindPopup('You are here')
+          .openPopup();
+        map.setView([latitude, longitude], 12);
+
+        // Find nearest site
+        const n = nearestTo(latitude, longitude);
+        if (n) {
+          const gmaps = `https://www.google.com/maps/dir/?api=1&destination=${n.lat},${n.lng}`;
+          L.polyline([[latitude, longitude], [n.lat, n.lng]], { dashArray: '4,6' }).addTo(map);
+          // Pop up the nearest marker
+          const popup = L.popup()
+            .setLatLng([n.lat, n.lng])
+            .setContent(`<strong>Nearest: ${n.name}</strong><br/><small>${(n.distance/1609.34).toFixed(1)} miles away</small><br/><a href="${gmaps}" target="_blank" rel="noopener">Directions →</a>`)
+            .openOn(map);
+        }
+      },
+      (err) => {
+        alert('Could not get your location. You can still use the search box above.');
+        console.error(err);
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  });
+
+  // ==== 6) Simple text filter (city name contains) ====
+  const form = document.getElementById('locator-form');
+  const input = document.getElementById('location-search');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const q = (input.value || '').trim().toLowerCase();
+    if (!q) { addMarkers(); return; }
+    const filtered = LOCATIONS.filter(l =>
+      l.name.toLowerCase().includes(q) || l.address.toLowerCase().includes(q)
+    );
+    if (filtered.length) {
+      addMarkers(filtered);
+      const b = L.latLngBounds(filtered.map(l => [l.lat, l.lng]));
+      map.fitBounds(b.pad(0.3));
+      renderList(filtered);
+    } else {
+      alert('No matching locations (try city names like Tysons, Arlington, Alexandria...)');
+    }
+  });
+
+  // ==== 7) Render a clickable list under the map ====
+  const listEl = document.getElementById('location-list');
+  function renderList(list = LOCATIONS) {
+    listEl.innerHTML = list.map(l => {
+      const gmaps = `https://www.google.com/maps/dir/?api=1&destination=${l.lat},${l.lng}`;
+      return `<div class="locator-box">
+        <strong>${l.name}</strong> • <span>${l.address}</span>
+        &nbsp; <a href="${gmaps}" target="_blank" rel="noopener">Directions</a>
+      </div>`;
+    }).join('');
+  }
+  renderList(); // initial
 </script>
 </body>
 </html>
