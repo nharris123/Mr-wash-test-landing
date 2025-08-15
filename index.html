@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Mr Wash Car Wash | Shine In Minutes</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Perf: preconnects for fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
-  <!-- Leaflet CSS (for the map) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+
+  <!-- Leaflet CSS (map) -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin=""
   />
+
+  <!-- INLINE CSS so this page works immediately -->
   <style>
-    :root {
-      --orange:#FE5000; --navy:#0E2A47; --yellow:#FFE22C;
-      --light:#F5F7FA; --white:#fff; --radius:12px; --container:1200px;
-    }
+    :root { --orange:#FE5000; --navy:#0E2A47; --yellow:#FFE22C; --light:#F5F7FA; --white:#fff; --radius:12px; --container:1200px; }
     html,body{margin:0;padding:0;background:var(--white)}
     body{font-family:Inter,sans-serif;color:var(--navy)}
     .container{max-width:var(--container);margin:0 auto;padding:0 20px}
@@ -30,6 +34,23 @@
     .brand{font-family:Poppins,sans-serif;font-weight:700;font-size:21px}
     nav ul{display:flex;gap:24px;list-style:none;margin:0;padding:0}
     nav a{color:var(--navy);text-decoration:none;font-weight:500}
+
+    /* Mobile menu button + behavior */
+    .menu-toggle{display:none}
+    @media (max-width:768px){
+      .menu-toggle{
+        display:inline-flex; align-items:center; gap:8px;
+        padding:10px 14px; border:1px solid #C8C8C8; border-radius:10px; background:#fff;
+        font-family:Poppins,sans-serif; font-weight:700;
+      }
+      header nav{position:relative}
+      header nav ul{
+        position:absolute; top:76px; left:0; right:0;
+        background:#fff; display:none; flex-direction:column; gap:12px;
+        padding:14px 20px 18px; border-bottom:1px solid #ececec;
+      }
+      header nav ul.open{display:flex}
+    }
 
     /* Buttons */
     .btn,.cta a{display:inline-block;padding:12px 26px;border-radius:var(--radius);font-weight:700;text-decoration:none;
@@ -96,11 +117,13 @@
 <header>
   <div class="container nav">
     <div class="logo-wrap">
-      <img class="logo" src="assets/Asset-5@3x.png" alt="Mr Wash Car Wash logo">
+      <img class="logo" src="assets/Asset-5@3x.png" alt="Mr Wash Car Wash logo" />
       <span class="brand">Mr Wash</span>
+      <!-- Mobile menu button -->
+      <button id="menu-toggle" class="menu-toggle" aria-label="Menu" aria-expanded="false" aria-controls="site-nav">☰ Menu</button>
     </div>
     <nav>
-      <ul>
+      <ul id="site-nav">
         <li><a href="#">Home</a></li>
         <li><a href="#unlimited">Unlimited Club</a></li>
         <li><a href="#locations">Locations</a></li>
@@ -207,7 +230,7 @@
 <footer>
   <div class="container footer-block">
     <div class="footer-brand">
-      <img src="assets/Asset-5@3x.png" alt="Mr Wash Car Wash logo">
+      <img src="assets/Asset-5@3x.png" alt="Mr Wash Car Wash logo" />
       <span>Mr Wash Car Wash</span>
     </div>
     <div class="footer-links">
@@ -220,6 +243,20 @@
     <div class="footer-copy">&copy; 2025 Mr Wash Car Wash</div>
   </div>
 </footer>
+
+<!-- Mobile menu JS -->
+<script>
+(function(){
+  const btn = document.getElementById('menu-toggle');
+  const list = document.getElementById('site-nav');
+  if (btn && list){
+    btn.addEventListener('click', () => {
+      const isOpen = list.classList.toggle('open');
+      btn.setAttribute('aria-expanded', isOpen);
+    });
+  }
+})();
+</script>
 
 <!-- Calculator JS -->
 <script>
@@ -254,7 +291,7 @@
 })();
 </script>
 
-<!-- Leaflet JS (for map) -->
+<!-- Leaflet JS -->
 <script
   src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
   integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
@@ -264,7 +301,6 @@
 <!-- Map JS -->
 <script>
 (function(){
-  // Your real locations (swap coordinates/addresses anytime)
   const LOCATIONS = [
     { name:"Tysons", address:"8218 Leesburg Pike, Tysons, VA",            lat:38.920, lng:-77.223 },
     { name:"Arlington", address:"101 N Glebe Rd, Arlington, VA",          lat:38.878, lng:-77.101 },
@@ -276,13 +312,9 @@
 
   const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 
-  // Create map
   const map = L.map('map', { scrollWheelZoom: !isTouch }).setView([38.9072, -77.0369], 10);
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19, attribution: '&copy; OpenStreetMap'
-  }).addTo(map);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(map);
 
-  // Markers
   const markers = L.layerGroup().addTo(map);
   function addMarkers(list = LOCATIONS){
     markers.clearLayers();
@@ -294,13 +326,8 @@
   }
   addMarkers();
 
-  // Fit to all
-  (function(){
-    const b = L.latLngBounds(LOCATIONS.map(l => [l.lat, l.lng]));
-    if (b.isValid()) map.fitBounds(b.pad(0.2));
-  })();
+  (function(){ const b=L.latLngBounds(LOCATIONS.map(l=>[l.lat,l.lng])); if (b.isValid()) map.fitBounds(b.pad(0.2)); })();
 
-  // Helpers
   function haversine(a,b,c,d){
     const r=x=>x*Math.PI/180, R=6371e3, φ1=r(a), φ2=r(c), Δφ=r(c-a), Δλ=r(d-b);
     const k=Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
@@ -312,20 +339,18 @@
     return best;
   }
 
-  // Use My Location
   const useBtn = document.getElementById('use-my-location');
   if (useBtn) useBtn.addEventListener('click', () => {
     if (!navigator.geolocation){ alert('Geolocation not supported on this browser.'); return; }
     navigator.geolocation.getCurrentPosition(pos => {
       const { latitude, longitude } = pos.coords;
-      L.circleMarker([latitude, longitude], { radius:8, color:'#FE5000' })
-        .addTo(map).bindPopup('You are here').openPopup();
+      L.circleMarker([latitude, longitude], { radius:8, color:'#FE5000' }).addTo(map).bindPopup('You are here').openPopup();
       map.setView([latitude, longitude], 12);
 
       const n = nearestTo(latitude, longitude);
-      if (n) {
+      if (n){
         const g = `https://www.google.com/maps/dir/?api=1&destination=${n.lat},${n.lng}`;
-        L.polyline([[latitude, longitude], [n.lat, n.lng]], { dashArray:'4,6' }).addTo(map);
+        L.polyline([[latitude, longitude],[n.lat, n.lng]], { dashArray:'4,6' }).addTo(map);
         L.popup().setLatLng([n.lat, n.lng])
           .setContent(`<strong>Nearest: ${n.name}</strong><br/><small>${(n.distance/1609.34).toFixed(1)} miles away</small><br/><a href="${g}" target="_blank" rel="noopener">Directions →</a>`)
           .openOn(map);
@@ -333,7 +358,6 @@
     }, () => alert('Could not get your location. You can still use the search box above.'), { enableHighAccuracy:true, timeout:8000 });
   });
 
-  // Simple search filter
   const form = document.getElementById('locator-form');
   const input = document.getElementById('location-search');
   const listEl = document.getElementById('location-list');
