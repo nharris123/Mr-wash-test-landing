@@ -153,13 +153,13 @@
         <li><a href="#locations">Locations</a></li>
         <li><a href="about.html">About</a></li>
         <!-- This CTA shows only inside the mobile menu -->
-        <li class="mobile-cta"><a class="btn btn-primary" href="#unlimited">Join Unlimited</a></li>
+        <li class="mobile-cta"><a class="btn btn-primary" href="https://portal.mrwash.com/signup" target="_blank" rel="noopener">Join Unlimited</a></li>
       </ul>
     </nav>
 
     <!-- Desktop-only CTA -->
     <div class="cta desktop-cta">
-      <a class="primary" href="#unlimited">Join Unlimited</a>
+      <a class="primary" href="https://portal.mrwash.com/signup" target="_blank" rel="noopener">Join Unlimited</a>
     </div>
   </div>
 </header>
@@ -185,19 +185,19 @@
         <h3>Lite</h3>
         <div class="price">$19/mo</div>
         <ul><li>Exterior wash</li><li>Spot-free rinse</li><li>Free vacuums</li></ul>
-        <a href="#" class="btn btn-secondary">Join Lite</a>
+        <a href="https://portal.mrwash.com/signup" class="btn btn-secondary" target="_blank" rel="noopener">Join Lite</a>
       </div>
       <div class="card popular">
         <h3>Plus</h3>
         <div class="price">$29/mo</div>
         <ul><li>Triple foam</li><li>Wheel clean</li><li>Touchless dry</li><li>Free vacuums</li></ul>
-        <a href="#" class="btn btn-primary">Join Plus</a>
+        <a href="https://portal.mrwash.com/signup" class="btn btn-primary" target="_blank" rel="noopener">Join Plus</a>
       </div>
       <div class="card">
         <h3>Pro Ceramic</h3>
         <div class="price">$39/mo</div>
         <ul><li>Ceramic sealant</li><li>Tire shine</li><li>Undercarriage rinse</li><li>Free vacuums</li></ul>
-        <a href="#" class="btn btn-secondary">Join Pro</a>
+        <a href="https://portal.mrwash.com/signup" class="btn btn-secondary" target="_blank" rel="noopener">Join Pro</a>
       </div>
     </div>
   </div>
@@ -227,7 +227,7 @@
           Enter your washes and price to see savings.
         </div>
         <div style="margin-top:16px;">
-          <a id="calc-cta" href="#unlimited" class="btn btn-secondary">Join Unlimited</a>
+          <a id="calc-cta" href="https://portal.mrwash.com/signup" class="btn btn-secondary" target="_blank" rel="noopener">Join Unlimited</a>
         </div>
       </div>
     </div>
@@ -314,7 +314,9 @@
        <ul style="margin:8px 0 0 18px;">${rows}</ul>`;
     const cta = document.getElementById('calc-cta');
     cta.textContent = 'Join ' + best.name;
-    cta.href = '#unlimited';
+    cta.href = 'https://portal.mrwash.com/signup';
+    cta.target = '_blank';
+    cta.rel = 'noopener';
   });
 })();
 </script>
