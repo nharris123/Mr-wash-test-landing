@@ -19,7 +19,7 @@
     crossorigin=""
   />
 
-  <!-- INLINE CSS so this page works immediately -->
+  <!-- INLINE CSS -->
   <style>
     :root { --orange:#FE5000; --navy:#0E2A47; --yellow:#FFE22C; --light:#F5F7FA; --white:#fff; --radius:12px; --container:1200px; }
     html,body{margin:0;padding:0;background:var(--white)}
@@ -37,19 +37,38 @@
 
     /* Mobile menu button + behavior */
     .menu-toggle{display:none}
+    .desktop-cta { display: block; }
+    .mobile-cta  { display: none; }
+
     @media (max-width:768px){
+      /* Let header items wrap (logo row on top, nav below) */
+      .nav { flex-wrap: wrap; gap: 10px; }
+      .logo-wrap { flex: 1; }
+
+      /* Menu button on the right */
       .menu-toggle{
         display:inline-flex; align-items:center; gap:8px;
+        margin-left:auto;
         padding:10px 14px; border:1px solid #C8C8C8; border-radius:10px; background:#fff;
         font-family:Poppins,sans-serif; font-weight:700;
       }
-      header nav{position:relative}
+
+      /* Hide desktop CTA, show CTA inside mobile menu */
+      .desktop-cta { display: none; }
+      .mobile-cta  { display: block; }
+
+      /* Drop the menu BELOW header instead of overlay */
+      header nav { order: 3; width: 100%; }
       header nav ul{
-        position:absolute; top:76px; left:0; right:0;
-        background:#fff; display:none; flex-direction:column; gap:12px;
-        padding:14px 20px 18px; border-bottom:1px solid #ececec;
+        position: static;
+        display: none;
+        flex-direction: column; gap: 12px;
+        margin: 8px 0 0; padding: 14px 16px 18px;
+        border: 1px solid #ececec; border-radius: 12px;
+        box-shadow: 0 6px 18px rgba(0,0,0,.06);
+        background: #fff;
       }
-      header nav ul.open{display:flex}
+      header nav ul.open{ display:flex }
     }
 
     /* Buttons */
@@ -111,6 +130,9 @@
       #locator-form .btn{flex:1;text-align:center}
       #map{height:320px}
     }
+
+    /* Make anchor targets not hide behind sticky header */
+    section[id]{ scroll-margin-top: 90px; }
   </style>
 </head>
 <body>
@@ -119,18 +141,24 @@
     <div class="logo-wrap">
       <img class="logo" src="assets/Asset-5@3x.png" alt="Mr Wash Car Wash logo" />
       <span class="brand">Mr Wash</span>
-      <!-- Mobile menu button -->
-      <button id="menu-toggle" class="menu-toggle" aria-label="Menu" aria-expanded="false" aria-controls="site-nav">☰ Menu</button>
     </div>
+
+    <!-- Menu button on the right -->
+    <button id="menu-toggle" class="menu-toggle" aria-label="Menu" aria-expanded="false" aria-controls="site-nav">☰ Menu</button>
+
     <nav>
       <ul id="site-nav">
         <li><a href="#">Home</a></li>
         <li><a href="#unlimited">Unlimited Club</a></li>
         <li><a href="#locations">Locations</a></li>
         <li><a href="about.html">About</a></li>
+        <!-- This CTA shows only inside the mobile menu -->
+        <li class="mobile-cta"><a class="btn btn-primary" href="#unlimited">Join Unlimited</a></li>
       </ul>
     </nav>
-    <div class="cta">
+
+    <!-- Desktop-only CTA -->
+    <div class="cta desktop-cta">
       <a class="primary" href="#unlimited">Join Unlimited</a>
     </div>
   </div>
