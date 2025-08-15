@@ -4,58 +4,92 @@
   <meta charset="UTF-8">
   <title>Mr Wash Car Wash | Shine In Minutes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+  <!-- Leaflet CSS (for the map) -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
   <style>
     :root {
-      --orange: #FE5000;
-      --navy: #0E2A47;
-      --yellow: #FFE22C;
-      --light: #F5F7FA;
-      --white: #fff;
-      --radius: 12px;
-      --container: 1200px;
+      --orange:#FE5000; --navy:#0E2A47; --yellow:#FFE22C;
+      --light:#F5F7FA; --white:#fff; --radius:12px; --container:1200px;
     }
-    html,body {margin:0;padding:0;background:var(--white);}
-    body {font-family:Inter,sans-serif;color:var(--navy);}
-    .container {max-width:var(--container);margin:0 auto;padding:0 20px;}
-    header {background: var(--white); border-bottom: 1px solid #ececec; position: sticky; top: 0; z-index: 10;}
-    .nav {display:flex;align-items:center;justify-content:space-between;height:76px;}
-    .logo-wrap {display:flex;align-items:center;gap:15px;}
-    .logo {height:48px;}
-    .brand {font-family: Poppins,sans-serif;font-weight:700;font-size:21px;}
-    nav ul {display:flex;gap:24px;list-style:none;margin:0;padding:0;}
-    nav a {color:var(--navy);text-decoration:none;font-weight:500;}
-    .cta a {display:inline-block;padding:12px 26px;border-radius:var(--radius);font-weight:700;text-decoration:none;font-family:Poppins,sans-serif;font-size:17px;letter-spacing:1px;border:none;transition:all .2s;}
-    .cta .primary {background:var(--orange);color:var(--white);}
-    .cta .primary:hover {background:#D64700;}
+    html,body{margin:0;padding:0;background:var(--white)}
+    body{font-family:Inter,sans-serif;color:var(--navy)}
+    .container{max-width:var(--container);margin:0 auto;padding:0 20px}
 
-    .hero {position:relative;background:#0E2A47;color:var(--white);overflow:hidden;min-height:320px;}
-    .hero-bg {position:absolute;inset:0;
-      background:linear-gradient(105deg,rgba(14,42,71,0.9) 55%,rgba(254,80,0,0.24) 100%),
+    /* Header / Nav */
+    header{background:#fff;border-bottom:1px solid #ececec;position:sticky;top:0;z-index:10}
+    .nav{display:flex;align-items:center;justify-content:space-between;min-height:76px}
+    .logo-wrap{display:flex;align-items:center;gap:15px}
+    .logo{height:48px}
+    .brand{font-family:Poppins,sans-serif;font-weight:700;font-size:21px}
+    nav ul{display:flex;gap:24px;list-style:none;margin:0;padding:0}
+    nav a{color:var(--navy);text-decoration:none;font-weight:500}
+
+    /* Buttons */
+    .btn,.cta a{display:inline-block;padding:12px 26px;border-radius:var(--radius);font-weight:700;text-decoration:none;
+      font-family:Poppins,sans-serif;font-size:17px;letter-spacing:1px;border:none;transition:all .2s;min-height:44px}
+    .btn-primary,.cta .primary{background:var(--orange);color:#fff}
+    .btn-primary:hover,.cta .primary:hover{background:#D64700}
+    .btn-secondary{border:2px solid var(--orange);background:#fff;color:var(--orange)}
+    .btn-secondary:hover{background:var(--orange);color:#fff}
+
+    /* Hero */
+    .hero{position:relative;background:#0E2A47;color:#fff;overflow:hidden;min-height:380px}
+    .hero-bg{position:absolute;inset:0;background:
+      linear-gradient(105deg,rgba(14,42,71,.88) 55%,rgba(254,80,0,.24) 100%),
       url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1200&auto=format&fit=crop') center/cover no-repeat;
-      z-index:0;opacity:.9;}
-    .hero-content {position:relative;z-index:1;padding:90px 0 60px;}
-    .hero h1 {font-size:40px;font-family:Poppins,sans-serif;font-weight:700;margin:0 0 14px;}
-    .hero p {font-size:20px;max-width:600px;margin:0 0 20px;}
-    .hero .btns {display:flex;gap:14px;flex-wrap:wrap;}
+      z-index:0;opacity:.88}
+    .hero-content{position:relative;z-index:1;padding:110px 0 60px}
+    .hero h1{font-size:clamp(28px,6vw,48px);font-family:Poppins,sans-serif;font-weight:700;margin:0 0 16px}
+    .hero p{font-size:clamp(16px,3.8vw,21px);max-width:540px;margin:0 0 32px}
+    .hero-buttons{display:flex;gap:18px;flex-wrap:wrap}
 
-    .block {padding:60px 0;}
-    .block h2 {font-family:Poppins,sans-serif;font-weight:700;font-size:28px;color:var(--navy);margin:0 0 18px;}
-    .lead {color:#333;margin:0 0 18px;font-size:20px;max-width:820px;}
+    /* Sections */
+    .block{padding:66px 0}
+    .block h2{font-family:Poppins,sans-serif;font-weight:700;font-size:clamp(22px,5vw,34px);margin:0 0 18px}
+    .lead{color:#333;margin:0 0 24px;font-size:21px}
 
-    .grid {display:grid;grid-template-columns:1fr 1fr;gap:28px;}
-    .card {background:var(--white);border-radius:var(--radius);padding:24px;box-shadow:0 4px 16px rgba(0,0,0,0.08);}
-    .price {font-size:24px;font-weight:700;color:var(--orange);margin:8px 0 10px;}
+    /* Cards / Grid */
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+    .block-cards{display:flex;flex-wrap:wrap;gap:30px}
+    .card{background:#fff;border-radius:var(--radius);padding:24px 26px;box-shadow:0 4px 16px rgba(0,0,0,.08);min-width:220px;max-width:346px}
+    .card h3{margin:0 0 10px;font-size:23px}
+    .card ul{margin:0 0 14px;padding-left:18px}
+    .price{font-size:29px;font-weight:700;color:var(--orange);margin:12px 0}
+    .card.popular{border:2px solid var(--orange);position:relative}
+    .card.popular::after{content:"Most Popular";position:absolute;top:-17px;right:16px;background:var(--orange);color:#fff;font-weight:700;padding:4px 13px;border-radius:999px;font-size:14px;letter-spacing:.5px}
 
-    footer {background:var(--navy);padding:48px 0 12px;margin-top:30px;color:#fff;}
-    .footer-block {display:flex;flex-wrap:wrap;gap:24px;align-items:center;justify-content:space-between;}
-    .footer-brand {display:flex;align-items:center;gap:14px;}
-    .footer-brand img {height:36px;border-radius:7px;}
-    .footer-links a {color:#fff;text-decoration:none;margin-right:16px;font-size:16px;}
-    .footer-links a:hover {color:var(--yellow);}
-    .footer-hours {color:var(--yellow);font-size:15px;margin-top:8px;}
-    .footer-copy {color:#fff;font-size:14px;font-weight:400;margin-top:14px;flex:100%;}
-    @media(max-width:900px){.grid{grid-template-columns:1fr;}}
+    /* Locator + Map */
+    .locator .location-list{margin-top:28px}
+    .locator-box{background:var(--light);border-radius:var(--radius);padding:22px 20px;text-align:center;color:#666;margin-bottom:10px}
+    #map{height:420px;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+    .use-my-location{margin-left:8px}
+
+    /* Footer */
+    footer{background:var(--navy);padding:48px 0 12px;margin-top:30px;color:#fff}
+    .footer-block{display:flex;flex-wrap:wrap;gap:24px;align-items:center;justify-content:space-between}
+    .footer-brand{display:flex;align-items:center;gap:14px}
+    .footer-brand img{height:36px;border-radius:7px}
+    .footer-links a{color:#fff;text-decoration:none;margin-right:16px;font-size:16px}
+    .footer-links a:hover{color:var(--yellow)}
+    .footer-hours{color:var(--yellow);font-size:15px;margin-top:8px}
+    .footer-copy{color:#fff;font-size:14px;font-weight:400;margin-top:14px;flex:100%}
+
+    /* Mobile tweaks */
+    @media(max-width:900px){.grid{grid-template-columns:1fr}.block-cards{flex-direction:column}}
+    @media(max-width:600px){
+      .hero-content{padding:62px 0 30px}
+      .block-cards .card{max-width:100%}
+      #locator-form{display:flex;gap:12px;flex-wrap:wrap}
+      #locator-form .btn{flex:1;text-align:center}
+      #map{height:320px}
+    }
   </style>
 </head>
 <body>
@@ -84,9 +118,9 @@
   <div class="container hero-content">
     <h1>For the love of the road.<br>For the love of your shine.</h1>
     <p>Fast, eco-friendly car washes with free vacuums across the DMV. Drive in dull, drive out dazzling.</p>
-    <div class="btns">
+    <div class="hero-buttons">
       <a href="#unlimited" class="btn btn-primary">See Plans</a>
-      <a href="about.html" class="btn btn-secondary">About Us</a>
+      <a href="#locations" class="btn btn-secondary">Find a Location</a>
     </div>
   </div>
 </section>
@@ -95,39 +129,77 @@
   <div class="container">
     <h2>Our Wash Packages</h2>
     <p class="lead">Pick your shine. Wash as often as you like.</p>
-    <div class="grid">
+    <div class="block-cards">
       <div class="card">
         <h3>Lite</h3>
         <div class="price">$19/mo</div>
-        <ul>
-          <li>Exterior wash</li>
-          <li>Spot-free rinse</li>
-          <li>Free vacuums</li>
-        </ul>
+        <ul><li>Exterior wash</li><li>Spot-free rinse</li><li>Free vacuums</li></ul>
         <a href="#" class="btn btn-secondary">Join Lite</a>
       </div>
-      <div class="card">
+      <div class="card popular">
         <h3>Plus</h3>
         <div class="price">$29/mo</div>
-        <ul>
-          <li>Triple foam</li>
-          <li>Wheel clean</li>
-          <li>Touchless dry</li>
-          <li>Free vacuums</li>
-        </ul>
+        <ul><li>Triple foam</li><li>Wheel clean</li><li>Touchless dry</li><li>Free vacuums</li></ul>
         <a href="#" class="btn btn-primary">Join Plus</a>
       </div>
       <div class="card">
         <h3>Pro Ceramic</h3>
         <div class="price">$39/mo</div>
-        <ul>
-          <li>Ceramic sealant</li>
-          <li>Tire shine</li>
-          <li>Undercarriage rinse</li>
-          <li>Free vacuums</li>
-        </ul>
+        <ul><li>Ceramic sealant</li><li>Tire shine</li><li>Undercarriage rinse</li><li>Free vacuums</li></ul>
         <a href="#" class="btn btn-secondary">Join Pro</a>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- Savings Calculator -->
+<section class="block" id="calculator">
+  <div class="container">
+    <h2>Unlimited Savings Calculator</h2>
+    <p class="lead">See which plan pays for itself based on how often you wash.</p>
+
+    <div class="grid" style="align-items:flex-start;">
+      <div class="card">
+        <h3>Your habits</h3>
+        <label style="display:block;margin:10px 0 6px;font-weight:600;">Washes per month</label>
+        <input id="calc-washes" type="number" min="1" value="4"
+               style="width:100%;padding:12px 14px;border:1px solid #C8C8C8;border-radius:8px;font-size:16px;">
+        <label style="display:block;margin:16px 0 6px;font-weight:600;">Single wash price ($)</label>
+        <input id="calc-price" type="number" min="1" value="15" step="1"
+               style="width:100%;padding:12px 14px;border:1px solid #C8C8C8;border-radius:8px;font-size:16px;">
+        <button id="calc-btn" class="btn btn-primary" style="margin-top:16px;">Calculate</button>
+      </div>
+
+      <div class="card">
+        <h3>Best value for you</h3>
+        <div id="calc-result" style="font-size:18px;line-height:1.6;">
+          Enter your washes and price to see savings.
+        </div>
+        <div style="margin-top:16px;">
+          <a id="calc-cta" href="#unlimited" class="btn btn-secondary">Join Unlimited</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Locator / Map -->
+<section class="block locator" id="locations">
+  <div class="container">
+    <h2>Find a Location</h2>
+    <p class="lead">Search by city or ZIP — or use your current location.</p>
+
+    <form id="locator-form" style="display:flex;gap:16px;max-width:520px;margin-bottom:20px;">
+      <input id="location-search" type="text" placeholder="Enter city or ZIP"
+             style="flex:1;padding:11px 16px;border:1px solid #C8C8C8;border-radius:8px;font-size:17px;">
+      <button type="submit" class="btn btn-primary" style="padding:11px 32px;">Search</button>
+      <button type="button" id="use-my-location" class="btn btn-secondary use-my-location" style="padding:11px 18px;">Use My Location</button>
+    </form>
+
+    <div id="map"></div>
+
+    <div class="location-list" id="location-list" style="margin-top:18px;">
+      <div class="locator-box">Tysons • Arlington • Alexandria • Kensington • Silver Spring</div>
     </div>
   </div>
 </section>
@@ -148,6 +220,147 @@
     <div class="footer-copy">&copy; 2025 Mr Wash Car Wash</div>
   </div>
 </footer>
+
+<!-- Calculator JS -->
+<script>
+(function(){
+  const LITE=19, PLUS=29, PRO=39;
+  function recommend(cost,washes){
+    const spend = cost * washes;
+    const plans = [{name:'Lite',price:LITE},{name:'Plus',price:PLUS},{name:'Pro Ceramic',price:PRO}];
+    plans.forEach(p => p.savings = spend - p.price);
+    const best = plans.reduce((a,b) => b.savings > a.savings ? b : a);
+    return { spend, best, plans };
+  }
+  function dollars(n){ return '$' + n.toFixed(2); }
+  const btn = document.getElementById('calc-btn');
+  if (!btn) return;
+  btn.addEventListener('click', function(){
+    const w = Math.max(1, parseFloat(document.getElementById('calc-washes').value || '0'));
+    const p = Math.max(1, parseFloat(document.getElementById('calc-price').value  || '0'));
+    const { spend, best, plans } = recommend(p, w);
+    const rows = plans.map(o => {
+      const badge = (o.name===best.name) ? ' <span style="background:#FE5000;color:#fff;padding:3px 8px;border-radius:999px;font-size:12px;margin-left:6px;">Recommended</span>' : '';
+      const emphasis = (o.name===best.name) ? 'style="font-weight:700;color:#0E2A47;"' : '';
+      return `<li ${emphasis}>${o.name}: ${dollars(o.price)}/mo — Savings: ${dollars(o.savings)}${badge}</li>`;
+    }).join('');
+    document.getElementById('calc-result').innerHTML =
+      `<p>Pay-per-wash spend: <strong>${dollars(spend)}</strong> / month</p>
+       <ul style="margin:8px 0 0 18px;">${rows}</ul>`;
+    const cta = document.getElementById('calc-cta');
+    cta.textContent = 'Join ' + best.name;
+    cta.href = '#unlimited';
+  });
+})();
+</script>
+
+<!-- Leaflet JS (for map) -->
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""
+></script>
+
+<!-- Map JS -->
+<script>
+(function(){
+  // Your real locations (swap coordinates/addresses anytime)
+  const LOCATIONS = [
+    { name:"Tysons", address:"8218 Leesburg Pike, Tysons, VA",            lat:38.920, lng:-77.223 },
+    { name:"Arlington", address:"101 N Glebe Rd, Arlington, VA",          lat:38.878, lng:-77.101 },
+    { name:"Alexandria (S Van Dorn St)", address:"420 S Van Dorn St, Alexandria, VA 22304", lat:38.804, lng:-77.046 },
+    { name:"Kensington", address:"3817 Dupont Ave, Kensington, MD 20895", lat:39.026, lng:-77.076 },
+    { name:"Silver Spring", address:"7996 Georgia Ave, Silver Spring, MD 20910", lat:38.990, lng:-77.026 },
+    { name:"Alexandria (Mt Vernon Ave)", address:"3407 Mt Vernon Ave, Alexandria, VA 22305", lat:38.836, lng:-77.060 }
+  ];
+
+  const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+
+  // Create map
+  const map = L.map('map', { scrollWheelZoom: !isTouch }).setView([38.9072, -77.0369], 10);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+
+  // Markers
+  const markers = L.layerGroup().addTo(map);
+  function addMarkers(list = LOCATIONS){
+    markers.clearLayers();
+    list.forEach(l => {
+      const m = L.marker([l.lat, l.lng]).addTo(markers);
+      const g = `https://www.google.com/maps/dir/?api=1&destination=${l.lat},${l.lng}`;
+      m.bindPopup(`<strong>${l.name}</strong><br/><small>${l.address}</small><br/><a href="${g}" target="_blank" rel="noopener">Directions →</a>`);
+    });
+  }
+  addMarkers();
+
+  // Fit to all
+  (function(){
+    const b = L.latLngBounds(LOCATIONS.map(l => [l.lat, l.lng]));
+    if (b.isValid()) map.fitBounds(b.pad(0.2));
+  })();
+
+  // Helpers
+  function haversine(a,b,c,d){
+    const r=x=>x*Math.PI/180, R=6371e3, φ1=r(a), φ2=r(c), Δφ=r(c-a), Δλ=r(d-b);
+    const k=Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
+    return 2*R*Math.asin(Math.sqrt(k));
+  }
+  function nearestTo(lat,lng){
+    let best=null,dist=Infinity;
+    LOCATIONS.forEach(l => { const d=haversine(lat,lng,l.lat,l.lng); if (d<dist){dist=d; best={...l,distance:d};} });
+    return best;
+  }
+
+  // Use My Location
+  const useBtn = document.getElementById('use-my-location');
+  if (useBtn) useBtn.addEventListener('click', () => {
+    if (!navigator.geolocation){ alert('Geolocation not supported on this browser.'); return; }
+    navigator.geolocation.getCurrentPosition(pos => {
+      const { latitude, longitude } = pos.coords;
+      L.circleMarker([latitude, longitude], { radius:8, color:'#FE5000' })
+        .addTo(map).bindPopup('You are here').openPopup();
+      map.setView([latitude, longitude], 12);
+
+      const n = nearestTo(latitude, longitude);
+      if (n) {
+        const g = `https://www.google.com/maps/dir/?api=1&destination=${n.lat},${n.lng}`;
+        L.polyline([[latitude, longitude], [n.lat, n.lng]], { dashArray:'4,6' }).addTo(map);
+        L.popup().setLatLng([n.lat, n.lng])
+          .setContent(`<strong>Nearest: ${n.name}</strong><br/><small>${(n.distance/1609.34).toFixed(1)} miles away</small><br/><a href="${g}" target="_blank" rel="noopener">Directions →</a>`)
+          .openOn(map);
+      }
+    }, () => alert('Could not get your location. You can still use the search box above.'), { enableHighAccuracy:true, timeout:8000 });
+  });
+
+  // Simple search filter
+  const form = document.getElementById('locator-form');
+  const input = document.getElementById('location-search');
+  const listEl = document.getElementById('location-list');
+
+  if (form) form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const q = (input.value || '').trim().toLowerCase();
+    if (!q){ addMarkers(); renderList(LOCATIONS); return; }
+    const filtered = LOCATIONS.filter(l => l.name.toLowerCase().includes(q) || l.address.toLowerCase().includes(q));
+    if (filtered.length){
+      addMarkers(filtered);
+      const b = L.latLngBounds(filtered.map(l => [l.lat, l.lng]));
+      map.fitBounds(b.pad(0.3));
+      renderList(filtered);
+    } else {
+      alert('No matching locations (try Tysons, Arlington, Alexandria...)');
+    }
+  });
+
+  function renderList(list = LOCATIONS){
+    listEl.innerHTML = list.map(l => {
+      const g = `https://www.google.com/maps/dir/?api=1&destination=${l.lat},${l.lng}`;
+      return `<div class="locator-box"><strong>${l.name}</strong> • <span>${l.address}</span> &nbsp; <a href="${g}" target="_blank" rel="noopener">Directions</a></div>`;
+    }).join('');
+  }
+  renderList();
+})();
+</script>
 </body>
 </html>
- 
