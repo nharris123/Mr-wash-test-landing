@@ -250,7 +250,7 @@
     <div id="map"></div>
 
     <div class="location-list" id="location-list" style="margin-top:18px;">
-      <div class="locator-box">Tysons • Arlington • Alexandria • Kensington • Silver Spring</div>
+      <div class="locator-box">Tysons • Arlington • Alexandria • Kensington • Silver Spring • Falls Church • Centreville • Rehoboth Beach</div>
     </div>
   </div>
 </section>
@@ -326,47 +326,95 @@
   crossorigin=""
 ></script>
 
-<!-- Map JS -->
+<!-- Map JS (11 locations + smart geocoding for any missing lat/lng) -->
 <script>
 (function(){
+  /* ===========================
+     Mr Wash Map — 11 locations
+     - Uses static lat/lng where provided
+     - Geocodes address-only rows at runtime (cached in localStorage)
+     =========================== */
+
   const LOCATIONS = [
-    { name:"Tysons", address:"8218 Leesburg Pike, Tysons, VA",            lat:38.920, lng:-77.223 },
-    { name:"Arlington", address:"101 N Glebe Rd, Arlington, VA",          lat:38.878, lng:-77.101 },
-    { name:"Alexandria (S Van Dorn St)", address:"420 S Van Dorn St, Alexandria, VA 22304", lat:38.804, lng:-77.046 },
-    { name:"Kensington", address:"3817 Dupont Ave, Kensington, MD 20895", lat:39.026, lng:-77.076 },
-    { name:"Silver Spring", address:"7996 Georgia Ave, Silver Spring, MD 20910", lat:38.990, lng:-77.026 },
-    { name:"Alexandria (Mt Vernon Ave)", address:"3407 Mt Vernon Ave, Alexandria, VA 22305", lat:38.836, lng:-77.060 }
+    // VA / MD / DE
+    { name: "Tysons (Leesburg Pike)",        address: "8218 Leesburg Pike, Vienna, VA 22182",           lat: 38.91782,  lng: -77.22903 },
+    { name: "Arlington (N Glebe Rd)",        address: "101 N Glebe Rd, Arlington, VA 22203",            lat: 38.87219,  lng: -77.10231 },
+    { name: "Alexandria (S Van Dorn St)",    address: "420 S Van Dorn St, Alexandria, VA 22304",        lat: 38.80788,  lng: -77.13251 },
+    { name: "Alexandria (Mt Vernon Ave)",    address: "3407 Mt Vernon Ave, Alexandria, VA 22305",       lat: 38.83615,  lng: -77.06057 },
+    { name: "Kensington",                     address: "3817 Dupont Ave, Kensington, MD 20895",          lat: 39.031211, lng: -77.076234 },
+    { name: "Silver Spring",                  address: "7996 Georgia Ave, Silver Spring, MD 20910",      lat: 38.987100, lng: -77.027275 },
+
+    { name: "Falls Church (Gallows Rd)",      address: "3013 Gallows Rd, Falls Church, VA 22042",        lat: 38.868718, lng: -77.226490 },
+    { name: "Arlington (S Four Mile Run)",    address: "4148 S Four Mile Run Dr, Arlington, VA 22206",   lat: 38.848060, lng: -77.099040 },
+    { name: "Baileys Crossroads (Columbia Pike)", address: "5901 Columbia Pike, Falls Church, VA 22041" }, // geocode at runtime
+    { name: "Centreville (Lee Hwy)",          address: "13817 Lee Hwy, Centreville, VA 20121",           lat: 38.838191, lng: -77.424880 },
+    { name: "Rehoboth Beach (Hebron Rd)",     address: "19898 Hebron Rd, Rehoboth Beach, DE 19971",      lat: 38.731529, lng: -75.087044 }
   ];
 
   const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 
+  // Map
   const map = L.map('map', { scrollWheelZoom: !isTouch }).setView([38.9072, -77.0369], 10);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(map);
 
   const markers = L.layerGroup().addTo(map);
-  function addMarkers(list = LOCATIONS){
+
+  // Local cache so we don’t re-geocode every visit
+  const CACHE_KEY = 'mw_geocode_cache_v1';
+  const cache = (() => { try { return JSON.parse(localStorage.getItem(CACHE_KEY) || '{}'); } catch { return {}; } })();
+  function saveCache(){ try { localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch {} }
+
+  // Geocode any address missing lat/lng (Nominatim)
+  async function geocodeAddress(addr){
+    if (cache[addr]) return cache[addr];
+    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(addr)}`;
+    const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+    const data = await res.json();
+    if (Array.isArray(data) && data[0]){
+      const lat = parseFloat(data[0].lat), lng = parseFloat(data[0].lon);
+      cache[addr] = { lat, lng }; saveCache(); return cache[addr];
+    }
+    return null;
+  }
+
+  async function ensureLatLng(list){
+    for (const loc of list){
+      const needs = typeof loc.lat !== 'number' || typeof loc.lng !== 'number';
+      if (!needs) continue;
+      const found = await geocodeAddress(loc.address);
+      if (found){ loc.lat = found.lat; loc.lng = found.lng; }
+      await new Promise(r => setTimeout(r, 650)); // be polite to the free service
+    }
+    return list;
+  }
+
+  function addMarkers(list){
     markers.clearLayers();
     list.forEach(l => {
+      if (typeof l.lat !== 'number' || typeof l.lng !== 'number') return;
       const m = L.marker([l.lat, l.lng]).addTo(markers);
       const g = `https://www.google.com/maps/dir/?api=1&destination=${l.lat},${l.lng}`;
       m.bindPopup(`<strong>${l.name}</strong><br/><small>${l.address}</small><br/><a href="${g}" target="_blank" rel="noopener">Directions →</a>`);
     });
-  }
-  addMarkers();
 
-  (function(){ const b=L.latLngBounds(LOCATIONS.map(l=>[l.lat,l.lng])); if (b.isValid()) map.fitBounds(b.pad(0.2)); })();
-
-  function haversine(a,b,c,d){
-    const r=x=>x*Math.PI/180, R=6371e3, φ1=r(a), φ2=r(c), Δφ=r(c-a), Δλ=r(d-b);
-    const k=Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
-    return 2*R*Math.asin(Math.sqrt(k));
+    // Fit to all visible markers
+    const pts = list.filter(l => typeof l.lat === 'number' && typeof l.lng === 'number').map(l => [l.lat, l.lng]);
+    if (pts.length) map.fitBounds(L.latLngBounds(pts).pad(0.2));
   }
+
+  // Haversine + nearest
+  function haversine(a,b,c,d){ const r=x=>x*Math.PI/180,R=6371e3,φ1=r(a),φ2=r(c),Δφ=r(c-a),Δλ=r(d-b);
+    const k=Math.sin(Δφ/2)**2+Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2; return 2*R*Math.asin(Math.sqrt(k)); }
   function nearestTo(lat,lng){
     let best=null,dist=Infinity;
-    LOCATIONS.forEach(l => { const d=haversine(lat,lng,l.lat,l.lng); if (d<dist){dist=d; best={...l,distance:d};} });
+    LOCATIONS.forEach(l => {
+      if (typeof l.lat !== 'number' || typeof l.lng !== 'number') return;
+      const d=haversine(lat,lng,l.lat,l.lng); if (d<dist){dist=d; best={...l,distance:d};}
+    });
     return best;
   }
 
+  // Use My Location
   const useBtn = document.getElementById('use-my-location');
   if (useBtn) useBtn.addEventListener('click', () => {
     if (!navigator.geolocation){ alert('Geolocation not supported on this browser.'); return; }
@@ -386,32 +434,35 @@
     }, () => alert('Could not get your location. You can still use the search box above.'), { enableHighAccuracy:true, timeout:8000 });
   });
 
+  // Simple search filter + list renderer
   const form = document.getElementById('locator-form');
   const input = document.getElementById('location-search');
   const listEl = document.getElementById('location-list');
 
-  if (form) form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const q = (input.value || '').trim().toLowerCase();
-    if (!q){ addMarkers(); renderList(LOCATIONS); return; }
-    const filtered = LOCATIONS.filter(l => l.name.toLowerCase().includes(q) || l.address.toLowerCase().includes(q));
-    if (filtered.length){
-      addMarkers(filtered);
-      const b = L.latLngBounds(filtered.map(l => [l.lat, l.lng]));
-      map.fitBounds(b.pad(0.3));
-      renderList(filtered);
-    } else {
-      alert('No matching locations (try Tysons, Arlington, Alexandria...)');
-    }
-  });
-
-  function renderList(list = LOCATIONS){
+  function renderList(list){
     listEl.innerHTML = list.map(l => {
-      const g = `https://www.google.com/maps/dir/?api=1&destination=${l.lat},${l.lng}`;
+      const g = (typeof l.lat === 'number' && typeof l.lng === 'number')
+        ? `https://www.google.com/maps/dir/?api=1&destination=${l.lat},${l.lng}`
+        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l.address)}`;
       return `<div class="locator-box"><strong>${l.name}</strong> • <span>${l.address}</span> &nbsp; <a href="${g}" target="_blank" rel="noopener">Directions</a></div>`;
     }).join('');
   }
-  renderList();
+
+  if (form) form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const q = (input.value || '').trim().toLowerCase();
+    if (!q){ renderList(LOCATIONS); addMarkers(LOCATIONS); return; }
+    const filtered = LOCATIONS.filter(l => l.name.toLowerCase().includes(q) || l.address.toLowerCase().includes(q));
+    await ensureLatLng(filtered);
+    renderList(filtered); addMarkers(filtered);
+  });
+
+  // Boot
+  (async () => {
+    await ensureLatLng(LOCATIONS);
+    renderList(LOCATIONS);
+    addMarkers(LOCATIONS);
+  })();
 })();
 </script>
 </body>
