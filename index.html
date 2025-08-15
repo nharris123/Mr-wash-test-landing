@@ -153,7 +153,7 @@
         <li><a href="#locations">Locations</a></li>
         <li><a href="about.html">About</a></li>
         <!-- This CTA shows only inside the mobile menu -->
-        <li class="mobile-cta"><a class="btn btn-primary" href="https://portal.mrwash.com/signup" target="_blank" rel="noopener">Join Unlimited</a></li>
+        <li class="mobile-cta"><a class="btn btn-primary" href="https://portal.mrwash.com/signup" rel="noopener">Join Unlimited</a></li>
       </ul>
     </nav>
 
@@ -185,19 +185,19 @@
         <h3>Lite</h3>
         <div class="price">$19/mo</div>
         <ul><li>Exterior wash</li><li>Spot-free rinse</li><li>Free vacuums</li></ul>
-        <a href="https://portal.mrwash.com/signup" class="btn btn-secondary" target="_blank" rel="noopener">Join Lite</a>
+        <a href="https://portal.mrwash.com/signup" class="btn btn-secondary"  rel="noopener">Join Lite</a>
       </div>
       <div class="card popular">
         <h3>Plus</h3>
         <div class="price">$29/mo</div>
         <ul><li>Triple foam</li><li>Wheel clean</li><li>Touchless dry</li><li>Free vacuums</li></ul>
-        <a href="https://portal.mrwash.com/signup" class="btn btn-primary" target="_blank" rel="noopener">Join Plus</a>
+        <a href="https://portal.mrwash.com/signup" class="btn btn-primary"  rel="noopener">Join Plus</a>
       </div>
       <div class="card">
         <h3>Pro Ceramic</h3>
         <div class="price">$39/mo</div>
         <ul><li>Ceramic sealant</li><li>Tire shine</li><li>Undercarriage rinse</li><li>Free vacuums</li></ul>
-        <a href="https://portal.mrwash.com/signup" class="btn btn-secondary" target="_blank" rel="noopener">Join Pro</a>
+        <a href="https://portal.mrwash.com/signup" class="btn btn-secondary"  rel="noopener">Join Pro</a>
       </div>
     </div>
   </div>
@@ -227,7 +227,7 @@
           Enter your washes and price to see savings.
         </div>
         <div style="margin-top:16px;">
-          <a id="calc-cta" href="https://portal.mrwash.com/signup" class="btn btn-secondary" target="_blank" rel="noopener">Join Unlimited</a>
+          <a id="calc-cta" href="https://portal.mrwash.com/signup" class="btn btn-secondary"  rel="noopener">Join Unlimited</a>
         </div>
       </div>
     </div>
@@ -396,7 +396,7 @@
       if (typeof l.lat !== 'number' || typeof l.lng !== 'number') return;
       const m = L.marker([l.lat, l.lng]).addTo(markers);
       const g = `https://www.google.com/maps/dir/?api=1&destination=${l.lat},${l.lng}`;
-      m.bindPopup(`<strong>${l.name}</strong><br/><small>${l.address}</small><br/><a href="${g}" target="_blank" rel="noopener">Directions →</a>`);
+      m.bindPopup(`<strong>${l.name}</strong><br/><small>${l.address}</small><br/><a href="${g}"  rel="noopener">Directions →</a>`);
     });
 
     // Fit to all visible markers
@@ -430,7 +430,7 @@
         const g = `https://www.google.com/maps/dir/?api=1&destination=${n.lat},${n.lng}`;
         L.polyline([[latitude, longitude],[n.lat, n.lng]], { dashArray:'4,6' }).addTo(map);
         L.popup().setLatLng([n.lat, n.lng])
-          .setContent(`<strong>Nearest: ${n.name}</strong><br/><small>${(n.distance/1609.34).toFixed(1)} miles away</small><br/><a href="${g}" target="_blank" rel="noopener">Directions →</a>`)
+          .setContent(`<strong>Nearest: ${n.name}</strong><br/><small>${(n.distance/1609.34).toFixed(1)} miles away</small><br/><a href="${g}"  rel="noopener">Directions →</a>`)
           .openOn(map);
       }
     }, () => alert('Could not get your location. You can still use the search box above.'), { enableHighAccuracy:true, timeout:8000 });
@@ -446,7 +446,7 @@
       const g = (typeof l.lat === 'number' && typeof l.lng === 'number')
         ? `https://www.google.com/maps/dir/?api=1&destination=${l.lat},${l.lng}`
         : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l.address)}`;
-      return `<div class="locator-box"><strong>${l.name}</strong> • <span>${l.address}</span> &nbsp; <a href="${g}" target="_blank" rel="noopener">Directions</a></div>`;
+      return `<div class="locator-box"><strong>${l.name}</strong> • <span>${l.address}</span> &nbsp; <a href="${g}"  rel="noopener">Directions</a></div>`;
     }).join('');
   }
 
