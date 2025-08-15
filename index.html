@@ -344,13 +344,14 @@
   <script>
   // ==== 1) Your locations (replace with real coordinates when ready) ====
   // NOTE: These are example coordinates around the DC area. Swap with real site lat/lng.
-  const LOCATIONS = [
-    { name: "Tysons",        address: "8218 leesburg pike Tysons, VA",        lat: 38.920, lng: -77.223 },
-    { name: "Arlington",     address: "101 n glebe road Arlington, VA",     lat: 38.878, lng: -77.101 },
-    { name: "Alexandria",    address: "420 S van dorn st Alexandria, VA",    lat: 38.804, lng: -77.046 },
-    { name: "Kensington",    address: "3817 dupont ave Kensington, MD",    lat: 39.026, lng: -77.076 },
-    { name: "Silver Spring", address: "7996 georgia ave Silver Spring, MD", lat: 38.990, lng: -77.026 }
-    { name: "Alexandria",    address: "3407 mt vernon ave alexandria, VA", lat: 38.836, lng: - 77.060  ];
+const LOCATIONS = [
+  { name: "Tysons",                      address: "8218 Leesburg Pike, Tysons, VA",                 lat: 38.920, lng: -77.223 },
+  { name: "Arlington",                   address: "101 N Glebe Rd, Arlington, VA",                  lat: 38.878, lng: -77.101 },
+  { name: "Alexandria (S Van Dorn St)",  address: "420 S Van Dorn St, Alexandria, VA 22304",        lat: 38.804, lng: -77.046 },
+  { name: "Kensington",                  address: "3817 Dupont Ave, Kensington, MD 20895",          lat: 39.026, lng: -77.076 },
+  { name: "Silver Spring",               address: "7996 Georgia Ave, Silver Spring, MD 20910",      lat: 38.990, lng: -77.026 },
+  { name: "Alexandria (Mt Vernon Ave)",  address: "3407 Mt Vernon Ave, Alexandria, VA 22305",       lat: 38.836, lng: -77.060 }
+];
 
   // ==== 2) Create map ====
   const map = L.map('map', { scrollWheelZoom: true }).setView([38.9072, -77.0369], 10); // DC area
