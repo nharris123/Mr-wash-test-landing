@@ -134,6 +134,7 @@
     /* Make anchor targets not hide behind sticky header */
     section[id]{ scroll-margin-top: 90px; }
   </style>
+<link rel="icon" href="data:,">
 </head>
 <body>
 <header>
@@ -268,204 +269,6 @@
 </footer>
 
 <!-- Mobile menu JS -->
-<script>
-(function(){
-  const btn = document.getElementById('menu-toggle');
-  const list = document.getElementById('site-nav');
-  if (btn && list){
-    btn.addEventListener('click', () => {
-      const isOpen = list.classList.toggle('open');
-      btn.setAttribute('aria-expanded', isOpen);
-    });
-  }
-})();
-</script>
-
-<!-- Calculator JS -->
-<script>
-(function(){
-  const LITE=19, PLUS=29, PRO=39;
-  function recommend(cost,washes){
-    const spend = cost * washes;
-    const plans = [{name:'Lite',price:LITE},{name:'Plus',price:PLUS},{name:'Pro Ceramic',price:PRO}];
-    plans.forEach(p => p.savings = spend - p.price);
-    const best = plans.reduce((a,b) => b.savings > a.savings ? b : a);
-    return { spend, best, plans };
-  }
-  function dollars(n){ return '$' + n.toFixed(2); }
-  const btn = document.getElementById('calc-btn');
-  if (!btn) return;
-  btn.addEventListener('click', function(){
-    const w = Math.max(1, parseFloat(document.getElementById('calc-washes').value || '0'));
-    const p = Math.max(1, parseFloat(document.getElementById('calc-price').value  || '0'));
-    const { spend, best, plans } = recommend(p, w);
-    const rows = plans.map(o => {
-      const badge = (o.name===best.name) ? ' <span style="background:#FE5000;color:#fff;padding:3px 8px;border-radius:999px;font-size:12px;margin-left:6px;">Recommended</span>' : '';
-      const emphasis = (o.name===best.name) ? 'style="font-weight:700;color:#0E2A47;"' : '';
-      return `<li ${emphasis}>${o.name}: ${dollars(o.price)}/mo — Savings: ${dollars(o.savings)}${badge}</li>`;
-    }).join('');
-    document.getElementById('calc-result').innerHTML =
-      `<p>Pay-per-wash spend: <strong>${dollars(spend)}</strong> / month</p>
-       <ul style="margin:8px 0 0 18px;">${rows}</ul>`;
-    const cta = document.getElementById('calc-cta');
-    cta.textContent = 'Join ' + best.name;
-    cta.href = 'https://portal.mrwash.com/signup';
-    cta.target = '_blank';
-    cta.rel = 'noopener';
-  });
-})();
-</script>
-
-<!-- Leaflet JS -->
-<script
-  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-  crossorigin=""
-></script>
-
-<!-- Map JS (11 locations + smart geocoding for any missing lat/lng) -->
-<script>
-(function(){
-  /* ===========================
-     Mr Wash Map — 11 locations
-     - Uses static lat/lng where provided
-     - Geocodes address-only rows at runtime (cached in localStorage)
-     =========================== */
-
-  const LOCATIONS = [
-    // VA / MD / DE
-    { name: "Tysons (Leesburg Pike)",        address: "8218 Leesburg Pike, Vienna, VA 22182",           lat: 38.91782,  lng: -77.22903 },
-    { name: "Arlington (N Glebe Rd)",        address: "101 N Glebe Rd, Arlington, VA 22203",            lat: 38.87219,  lng: -77.10231 },
-    { name: "Alexandria (S Van Dorn St)",    address: "420 S Van Dorn St, Alexandria, VA 22304",        lat: 38.80788,  lng: -77.13251 },
-    { name: "Alexandria (Mt Vernon Ave)",    address: "3407 Mt Vernon Ave, Alexandria, VA 22305",       lat: 38.83615,  lng: -77.06057 },
-    { name: "Kensington",                     address: "3817 Dupont Ave, Kensington, MD 20895",          lat: 39.031211, lng: -77.076234 },
-    { name: "Silver Spring",                  address: "7996 Georgia Ave, Silver Spring, MD 20910",      lat: 38.987100, lng: -77.027275 },
-
-    { name: "Falls Church (Gallows Rd)",      address: "3013 Gallows Rd, Falls Church, VA 22042",        lat: 38.868718, lng: -77.226490 },
-    { name: "Arlington (S Four Mile Run)",    address: "4148 S Four Mile Run Dr, Arlington, VA 22206",   lat: 38.848060, lng: -77.099040 },
-    { name: "Baileys Crossroads (Columbia Pike)", address: "5901 Columbia Pike, Falls Church, VA 22041" }, // geocode at runtime
-    { name: "Centreville (Lee Hwy)",          address: "13817 Lee Hwy, Centreville, VA 20121",           lat: 38.838191, lng: -77.424880 },
-    { name: "Rehoboth Beach (Hebron Rd)",     address: "19898 Hebron Rd, Rehoboth Beach, DE 19971",      lat: 38.731529, lng: -75.087044 }
-  ];
-
-  const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-
-  // Map
-  const map = L.map('map', { scrollWheelZoom: !isTouch }).setView([38.9072, -77.0369], 10);
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(map);
-
-  const markers = L.layerGroup().addTo(map);
-
-  // Local cache so we don’t re-geocode every visit
-  const CACHE_KEY = 'mw_geocode_cache_v1';
-  const cache = (() => { try { return JSON.parse(localStorage.getItem(CACHE_KEY) || '{}'); } catch { return {}; } })();
-  function saveCache(){ try { localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch {} }
-
-  // Geocode any address missing lat/lng (Nominatim)
-  async function geocodeAddress(addr){
-    if (cache[addr]) return cache[addr];
-    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(addr)}`;
-    const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
-    const data = await res.json();
-    if (Array.isArray(data) && data[0]){
-      const lat = parseFloat(data[0].lat), lng = parseFloat(data[0].lon);
-      cache[addr] = { lat, lng }; saveCache(); return cache[addr];
-    }
-    return null;
-  }
-
-  async function ensureLatLng(list){
-    for (const loc of list){
-      const needs = typeof loc.lat !== 'number' || typeof loc.lng !== 'number';
-      if (!needs) continue;
-      const found = await geocodeAddress(loc.address);
-      if (found){ loc.lat = found.lat; loc.lng = found.lng; }
-      await new Promise(r => setTimeout(r, 650)); // be polite to the free service
-    }
-    return list;
-  }
-
-  function addMarkers(list){
-    markers.clearLayers();
-    list.forEach(l => {
-      if (typeof l.lat !== 'number' || typeof l.lng !== 'number') return;
-      const m = L.marker([l.lat, l.lng]).addTo(markers);
-      const g = `https://www.google.com/maps/dir/?api=1&destination=${l.lat},${l.lng}`;
-      m.bindPopup(`<strong>${l.name}</strong><br/><small>${l.address}</small><br/><a href="${g}"  rel="noopener">Directions →</a>`);
-    });
-
-    // Fit to all visible markers
-    const pts = list.filter(l => typeof l.lat === 'number' && typeof l.lng === 'number').map(l => [l.lat, l.lng]);
-    if (pts.length) map.fitBounds(L.latLngBounds(pts).pad(0.2));
-  }
-
-  // Haversine + nearest
-  function haversine(a,b,c,d){ const r=x=>x*Math.PI/180,R=6371e3,φ1=r(a),φ2=r(c),Δφ=r(c-a),Δλ=r(d-b);
-    const k=Math.sin(Δφ/2)**2+Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2; return 2*R*Math.asin(Math.sqrt(k)); }
-  function nearestTo(lat,lng){
-    let best=null,dist=Infinity;
-    LOCATIONS.forEach(l => {
-      if (typeof l.lat !== 'number' || typeof l.lng !== 'number') return;
-      const d=haversine(lat,lng,l.lat,l.lng); if (d<dist){dist=d; best={...l,distance:d};}
-    });
-    return best;
-  }
-
-  // Use My Location
-  const useBtn = document.getElementById('use-my-location');
-  if (useBtn) useBtn.addEventListener('click', () => {
-    if (!navigator.geolocation){ alert('Geolocation not supported on this browser.'); return; }
-    navigator.geolocation.getCurrentPosition(pos => {
-      const { latitude, longitude } = pos.coords;
-      L.circleMarker([latitude, longitude], { radius:8, color:'#FE5000' }).addTo(map).bindPopup('You are here').openPopup();
-      map.setView([latitude, longitude], 12);
-
-      const n = nearestTo(latitude, longitude);
-      if (n){
-        const g = `https://www.google.com/maps/dir/?api=1&destination=${n.lat},${n.lng}`;
-        L.polyline([[latitude, longitude],[n.lat, n.lng]], { dashArray:'4,6' }).addTo(map);
-        L.popup().setLatLng([n.lat, n.lng])
-          .setContent(`<strong>Nearest: ${n.name}</strong><br/><small>${(n.distance/1609.34).toFixed(1)} miles away</small><br/><a href="${g}"  rel="noopener">Directions →</a>`)
-          .openOn(map);
-      }
-    }, () => alert('Could not get your location. You can still use the search box above.'), { enableHighAccuracy:true, timeout:8000 });
-  });
-
-  // Simple search filter + list renderer
-  const form = document.getElementById('locator-form');
-  const input = document.getElementById('location-search');
-  const listEl = document.getElementById('location-list');
-
-  function renderList(list){
-    listEl.innerHTML = list.map(l => {
-      const g = (typeof l.lat === 'number' && typeof l.lng === 'number')
-        ? `https://www.google.com/maps/dir/?api=1&destination=${l.lat},${l.lng}`
-        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l.address)}`;
-      return `<div class="locator-box"><strong>${l.name}</strong> • <span>${l.address}</span> &nbsp; <a href="${g}"  rel="noopener">Directions</a></div>`;
-    }).join('');
-  }
-
-  if (form) form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const q = (input.value || '').trim().toLowerCase();
-    if (!q){ renderList(LOCATIONS); addMarkers(LOCATIONS); return; }
-    const filtered = LOCATIONS.filter(l => l.name.toLowerCase().includes(q) || l.address.toLowerCase().includes(q));
-    await ensureLatLng(filtered);
-    renderList(filtered); addMarkers(filtered);
-  });
-
-  // Boot
-  (async () => {
-    await ensureLatLng(LOCATIONS);
-    renderList(LOCATIONS);
-    addMarkers(LOCATIONS);
-  })();
-})();
-</script>
-<!-- Mr Wash Assistant (Render-hosted) -->
-<link rel="stylesheet" href="https://mrwash-chat-3.onrender.com/widget.css">
-<div id="mrwash-assistant"></div>
-<script src="https://mrwash-chat-3.onrender.com/widget.js" data-api="https://mrwash-chat-3.onrender.com"></script>
 <!-- Mr Wash Assistant (Render-hosted) -->
 <link rel="stylesheet" href="https://mrwash-chat-3.onrender.com/widget.css">
 <div id="mrwash-assistant"></div>
@@ -477,27 +280,15 @@
   #mrwash-assistant{display:none;position:fixed;bottom:80px;right:20px;width:350px;height:500px;box-shadow:0 4px 12px rgba(0,0,0,0.3);z-index:9998}
 </style>
 <button id="chat-launcher">💬 Chat with Mr Wash</button>
+<!-- Mr Wash Chatbot (embed) -->
 <script>
-  const chatLauncher=document.getElementById("chat-launcher");
-  const chatBox=document.getElementById("mrwash-assistant");
-  chatLauncher.addEventListener("click",()=>{chatBox.style.display=(chatBox.style.display==="none"||!chatBox.style.display)?"block":"none";});
+  window.MR_WASH_WIDGET = {
+    apiBase: "https://mrwash-chat-3.onrender.com",
+    title: "Mr Wash Assistant",
+    launcherText: "💬 Chat with Mr Wash"
+  };
 </script>
-<!-- Mr Wash Assistant (Render-hosted) -->
-<link rel="stylesheet" href="https://mrwash-chat-3.onrender.com/widget.css">
-<div id="mrwash-assistant"></div>
-
-<!-- Floating Chat Launcher -->
-<style>
-  #chat-launcher{position:fixed;bottom:20px;right:20px;background:#0066cc;color:#fff;border:none;border-radius:50px;padding:14px 22px;font-size:16px;font-weight:bold;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.2);z-index:9999;transition:background .2s}
-  #chat-launcher:hover{background:#004a99}
-  #mrwash-assistant{display:none;position:fixed;bottom:80px;right:20px;width:350px;height:500px;box-shadow:0 4px 12px rgba(0,0,0,0.3);z-index:9998}
-</style>
-<button id="chat-launcher">💬 Chat with Mr Wash</button>
-<script>
-  const chatLauncher=document.getElementById("chat-launcher");
-  const chatBox=document.getElementById("mrwash-assistant");
-  chatLauncher.addEventListener("click",()=>{chatBox.style.display=(chatBox.style.display==="none"||!chatBox.style.display)?"block":"none";});
-</script>
+<!-- /Mr Wash Chatbot -->
 <!-- Mr Wash Chatbot (embed) -->
 <script>
   window.MR_WASH_WIDGET = {
